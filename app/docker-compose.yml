@@ -1,0 +1,31 @@
+version: "3.7"
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  mariadb-galera:
+    image: 'bitnami/mariadb-galera:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_ROOT_PASSWORD=secret 
+      - MARIADB_DATABASE=todos
+    networks:
+      - app-tier
+
+  app:
+    image: node:12-alpine
+    command: sh -c "yarn install && yarn run dev"
+    ports:
+      - 3000:3000
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      MYSQL_HOST: mariadb-galera
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secret
+      MYSQL_DB: todos
+    networks:
+      - app-tier
